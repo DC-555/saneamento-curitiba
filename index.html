@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Saneamento em Curitiba — Douglas Daniel Cackovski</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Lora:ital,wght@0,600;1,500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --vd:#1a3d2b;--vm:#2d6a4f;--vc:#52b788;--creme:#f5f0e8;--areia:#e8dfc8;
+  --txt:#1c1c1c;--txt2:#4a4a4a;--branco:#fff;--dest:#e76f51;--warn:#f4a261;
+  --ok:#52b788;--bad:#e63946;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Space Grotesk',sans-serif;background:var(--creme);color:var(--txt);line-height:1.6}
+
+/* NAV */
+header{background:var(--vd);position:sticky;top:0;z-index:200;box-shadow:0 2px 12px #0004}
+nav{max-width:1100px;margin:0 auto;padding:.85rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.nav-logo{font-size:.9rem;font-weight:700;color:var(--vc);letter-spacing:.06em;text-transform:uppercase}
+.nav-links{display:flex;gap:1.25rem;list-style:none;flex-wrap:wrap}
+.nav-links a{color:rgba(255,255,255,.75);text-decoration:none;font-size:.82rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--vc)}
+
+/* HERO */
+.hero{background:var(--vd);color:#fff;padding:4.5rem 1.5rem 3.5rem;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 65% 35%,rgba(82,183,136,.18),transparent 65%);pointer-events:none}
+.eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--vc);margin-bottom:.9rem}
+.hero h1{font-family:'Lora',serif;font-size:clamp(1.9rem,4.5vw,3.2rem);line-height:1.2;max-width:780px;margin:0 auto 1.1rem}
+.hero h1 em{font-style:italic;color:var(--vc)}
+.hero-sub{color:rgba(255,255,255,.68);max-width:540px;margin:0 auto 2.2rem;font-size:1rem}
+.hero-chips{display:flex;align-items:center;justify-content:center;gap:.75rem;flex-wrap:wrap}
+.chip{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:.3rem .9rem;font-size:.78rem;color:rgba(255,255,255,.65)}
+.chip-vis{background:rgba(82,183,136,.14);border:1px solid var(--vc);color:var(--vc);font-weight:600;display:flex;align-items:center;gap:.4rem;border-radius:999px;padding:.3rem .9rem;font-size:.82rem}
+.dot{width:7px;height:7px;background:var(--vc);border-radius:50%;animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.65)}}
+
+/* SEÇÃO */
+section{padding:3.5rem 1.5rem}
+.container{max-width:1000px;margin:0 auto}
+.slabel{font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--vm);margin-bottom:.4rem}
+h2{font-family:'Lora',serif;font-size:clamp(1.4rem,2.8vw,2rem);color:var(--vd);margin-bottom:.9rem;line-height:1.3}
+p{color:var(--txt2);margin-bottom:.85rem}
+p:last-child{margin-bottom:0}
+
+/* STATS STRIP */
+.stats-strip{background:var(--vm);padding:2.2rem 1.5rem}
+.stats-grid{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1.5rem;text-align:center}
+.sn{font-family:'Lora',serif;font-size:2.6rem;font-weight:600;color:var(--vc);line-height:1}
+.sl{font-size:.78rem;color:rgba(255,255,255,.68);font-weight:500;margin-top:.25rem}
+.ss{font-size:.66rem;color:rgba(255,255,255,.38);margin-top:.2rem}
+
+/* BAIRRO SELECTOR */
+.bairro-sec{background:var(--areia)}
+.bairro-box{background:var(--branco);border-radius:14px;padding:2rem;box-shadow:0 4px 24px #0000000d;margin-top:1.5rem}
+.select-row{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:1.5rem}
+select{font-family:'Space Grotesk',sans-serif;font-size:.95rem;padding:.65rem 1.1rem;border:2px solid var(--areia);border-radius:8px;background:var(--creme);color:var(--txt);cursor:pointer;flex:1;min-width:220px;transition:border-color .2s}
+select:focus{outline:none;border-color:var(--vc)}
+.bairro-result{display:none;animation:fadeIn .35s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.bairro-result.show{display:block}
+.bairro-nome{font-size:1.3rem;font-weight:700;color:var(--vd);margin-bottom:1rem}
+.metricas{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.25rem}
+.metrica{background:var(--creme);border-radius:10px;padding:1rem 1.1rem;border-left:4px solid var(--vc)}
+.metrica.warn{border-left-color:var(--warn)}
+.metrica.bad{border-left-color:var(--bad)}
+.metrica-val{font-size:1.6rem;font-weight:700;color:var(--vd);line-height:1}
+.metrica-label{font-size:.75rem;color:var(--txt2);margin-top:.25rem}
+.status-bar{height:10px;background:#e0e0e0;border-radius:999px;overflow:hidden;margin:.5rem 0 .25rem}
+.status-fill{height:100%;border-radius:999px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.status-label{font-size:.72rem;color:var(--txt2)}
+.bairro-obs{background:var(--areia);border-radius:8px;padding:.9rem 1.1rem;font-size:.85rem;color:var(--txt2);margin-top:1rem}
+
+/* GRÁFICOS */
+.graficos{background:var(--creme)}
+.chart-tabs{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.tab{font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:600;padding:.45rem 1rem;border-radius:999px;border:2px solid var(--areia);background:transparent;color:var(--txt2);cursor:pointer;transition:all .2s}
+.tab.active{background:var(--vd);color:#fff;border-color:var(--vd)}
+.chart-panel{display:none}
+.chart-panel.show{display:block}
+.chart-wrap{background:var(--branco);border-radius:14px;padding:1.5rem;box-shadow:0 2px 14px #0000000a;margin-bottom:1rem}
+canvas{max-height:340px}
+.chart-caption{font-size:.78rem;color:var(--txt2);text-align:center;margin-top:.5rem}
+
+/* FAQ ACORDEÃO */
+.faq-sec{background:var(--areia)}
+.faq-list{margin-top:1.5rem;display:grid;gap:.75rem}
+.faq-item{background:var(--branco);border-radius:10px;overflow:hidden;border:1px solid rgba(0,0,0,.06)}
+.faq-q{width:100%;display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.25rem;background:none;border:none;font-family:'Space Grotesk',sans-serif;font-size:.97rem;font-weight:600;color:var(--vd);cursor:pointer;text-align:left;gap:1rem;transition:background .2s}
+.faq-q:hover{background:var(--creme)}
+.faq-q.open{background:var(--vd);color:#fff}
+.faq-icon{font-size:1.1rem;flex-shrink:0;transition:transform .3s}
+.faq-q.open .faq-icon{transform:rotate(45deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s}
+.faq-a.open{max-height:500px;padding:.1rem 0 0}
+.faq-a-inner{padding:1rem 1.25rem 1.2rem;font-size:.9rem;color:var(--txt2);line-height:1.65;border-top:1px solid var(--areia)}
+.faq-a-inner strong{color:var(--vd)}
+.result-chip{display:inline-block;background:var(--vc);color:#fff;font-size:.72rem;font-weight:700;border-radius:999px;padding:.2rem .7rem;margin-top:.5rem}
+.result-chip.warn{background:var(--warn)}
+.result-chip.bad{background:var(--bad)}
+
+/* FONTES */
+.fontes-sec{background:var(--creme)}
+.fonte-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1rem;margin-top:1.5rem}
+.fonte-card{background:var(--branco);border:1px solid rgba(0,0,0,.07);border-radius:10px;padding:1.2rem;transition:box-shadow .2s,transform .2s}
+.fonte-card:hover{box-shadow:0 4px 20px #0000000f;transform:translateY(-2px)}
+.fi{font-size:1.4rem;margin-bottom:.5rem}
+.fn{font-weight:700;font-size:.92rem;color:var(--vd);margin-bottom:.25rem}
+.fd{font-size:.78rem;color:var(--txt2)}
+
+/* METODOLOGIA */
+.meto{background:var(--vd);color:#fff}
+.meto .slabel{color:var(--vc)}
+.meto h2{color:#fff}
+.meto p{color:rgba(255,255,255,.65)}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:1.25rem;margin-top:1.75rem}
+.step{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:1.4rem}
+.sw{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--vc);margin-bottom:.4rem}
+.st{font-weight:700;font-size:.93rem;color:#fff;margin-bottom:.4rem}
+.sd{font-size:.8rem;color:rgba(255,255,255,.5)}
+
+/* EQUIPE */
+.equipe{background:var(--creme)}
+.eq-card{background:var(--branco);border:1px solid rgba(0,0,0,.07);border-radius:12px;padding:1.4rem 1.8rem;display:flex;align-items:center;gap:1.4rem;max-width:480px;margin-top:1.4rem}
+.avatar{width:54px;height:54px;background:var(--vc);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;color:#fff}
+.en{font-weight:700;font-size:1rem;color:var(--vd)}
+.ei{font-size:.8rem;color:var(--txt2);margin:0}
+
+/* FOOTER */
+footer{background:var(--vd);color:rgba(255,255,255,.45);text-align:center;padding:1.75rem 1.5rem;font-size:.78rem}
+footer a{color:var(--vc);text-decoration:none}
+
+@media(max-width:600px){
+  .select-row{flex-direction:column}
+  select{min-width:100%}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <span class="nav-logo">Saneamento · Curitiba</span>
+    <ul class="nav-links">
+      <li><a href="#bairro">Meu Bairro</a></li>
+      <li><a href="#graficos">Gráficos</a></li>
+      <li><a href="#perguntas">Perguntas</a></li>
+      <li><a href="#fontes">Fontes</a></li>
+    </ul>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <p class="eyebrow">Trabalho de Extensão · Engenharia da Computação · Celso Lisboa</p>
+  <h1>Curitiba lidera em saneamento.<br/><em>Mas a cobertura é igual para todos?</em></h1>
+  <p class="hero-sub">Análise estatística de dados públicos sobre coleta de lixo e saneamento básico nos bairros de Curitiba — PR.</p>
+  <div class="hero-chips">
+    <span class="chip">📅 2026</span>
+    <span class="chip">📊 Estatística Aplicada · Análise de Dados · GSI</span>
+    <span class="chip">👤 Douglas Daniel Cackovski</span>
+    <span class="chip-vis"><span class="dot"></span><span id="visit-count">—</span> visitas</span>
+  </div>
+</section>
+
+<!-- STATS STRIP -->
+<div class="stats-strip">
+  <div class="stats-grid">
+    <div><div class="sn">100%</div><div class="sl">domicílios com coleta de lixo</div><div class="ss">IBGE · PNAD 2025</div></div>
+    <div><div class="sn">97,1%</div><div class="sl">cobertura de esgoto</div><div class="ss">Censo IBGE 2022</div></div>
+    <div><div class="sn">75</div><div class="sl">bairros analisados</div><div class="ss">IPPUC · Curitiba</div></div>
+    <div><div class="sn">156</div><div class="sl">canal de reclamações analisado</div><div class="ss">Dados Abertos CWB</div></div>
+  </div>
+</div>
+
+<!-- BAIRRO -->
+<section class="bairro-sec" id="bairro">
+  <div class="container">
+    <p class="slabel">Consulta por Bairro</p>
+    <h2>Como está o saneamento no seu bairro?</h2>
+    <p>Selecione um bairro de Curitiba para ver os indicadores de cobertura de esgoto, coleta de lixo, reclamações na Central 156 e presença de coleta seletiva.</p>
+    <div class="bairro-box">
+      <div class="select-row">
+        <select id="bairro-select" onchange="mostrarBairro()">
+          <option value="">— Selecione um bairro —</option>
+        </select>
+      </div>
+      <div class="bairro-result" id="bairro-result">
+        <div class="bairro-nome" id="b-nome"></div>
+        <div class="metricas" id="b-metricas"></div>
+        <div class="bairro-obs" id="b-obs"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GRÁFICOS -->
+<section class="graficos" id="graficos">
+  <div class="container">
+    <p class="slabel">Visualizações</p>
+    <h2>Explore os dados</h2>
+    <div class="chart-tabs">
+      <button class="tab active" onclick="showChart('reclamacoes',this)">Reclamações por Regional</button>
+      <button class="tab" onclick="showChart('cobertura',this)">Cobertura de Esgoto</button>
+      <button class="tab" onclick="showChart('renda',this)">Renda × Saneamento</button>
+      <button class="tab" onclick="showChart('capitais',this)">Curitiba vs Capitais</button>
+    </div>
+
+    <div class="chart-panel show" id="chart-reclamacoes">
+      <div class="chart-wrap">
+        <canvas id="c-reclamacoes"></canvas>
+        <p class="chart-caption">Número de reclamações sobre coleta, limpeza, drenagem e poluição registradas na Central 156 por regional administrativa · Fonte: Dados Abertos Curitiba · Base de dados 12/06/2026 · 147.301 registros analisados</p>
+      </div>
+    </div>
+
+    <div class="chart-panel" id="chart-cobertura">
+      <div class="chart-wrap">
+        <canvas id="c-cobertura"></canvas>
+        <p class="chart-caption">Percentual de domicílios com acesso à coleta de esgoto por regional · Fonte: Censo IBGE 2022 + IPPUC (dados reais · Central 156 2026</p>
+      </div>
+    </div>
+
+    <div class="chart-panel" id="chart-renda">
+      <div class="chart-wrap">
+        <canvas id="c-renda"></canvas>
+        <p class="chart-caption">Correlação entre renda média domiciliar (R$) e cobertura de saneamento (%) nos bairros de Curitiba · Fonte: IBGE 2022 (dados simulados)</p>
+      </div>
+    </div>
+
+    <div class="chart-panel" id="chart-capitais">
+      <div class="chart-wrap">
+        <canvas id="c-capitais"></canvas>
+        <p class="chart-caption">Comparativo de cobertura de coleta de esgoto entre capitais brasileiras · Fonte: SNIS 2023 (dados reais · Central 156 2026</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PERGUNTAS -->
+<section class="faq-sec" id="perguntas">
+  <div class="container">
+    <p class="slabel">Perguntas de Pesquisa</p>
+    <h2>O que investigamos — e o que encontramos</h2>
+    <div class="faq-list" id="faq-list"></div>
+  </div>
+</section>
+
+<!-- FONTES -->
+<section class="fontes-sec" id="fontes">
+  <div class="container">
+    <p class="slabel">Dados Utilizados</p>
+    <h2>Fontes públicas e abertas</h2>
+    <div class="fonte-cards">
+      <div class="fonte-card"><div class="fi">🏙️</div><div class="fn">Dados Abertos CWB</div><p class="fd">Solicitações da Central 156 — reclamações por bairro</p></div>
+      <div class="fonte-card"><div class="fi">📈</div><div class="fn">IBGE · Censo 2022</div><p class="fd">Cobertura de esgoto e coleta por grupo social e domicílio</p></div>
+      <div class="fonte-card"><div class="fi">🗺️</div><div class="fn">IPPUC</div><p class="fd">Dados territoriais: bairros, regionais e áreas irregulares</p></div>
+      <div class="fonte-card"><div class="fi">🚰</div><div class="fn">SNIS</div><p class="fd">Sistema Nacional — série histórica entre capitais</p></div>
+      <div class="fonte-card"><div class="fi">📋</div><div class="fn">PMSB 2025</div><p class="fd">Plano Municipal de Saneamento — metas e déficits</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- METODOLOGIA -->
+<section class="meto">
+  <div class="container">
+    <p class="slabel">Como fizemos</p>
+    <h2>Metodologia em 4 semanas</h2>
+    <p>Fluxo de trabalho de ciência de dados aplicada, com código aberto e documentado.</p>
+    <div class="steps">
+      <div class="step"><div class="sw">Semana 1</div><div class="st">Coleta de dados</div><p class="sd">Download e inspeção das bases do Portal Dados Abertos, IBGE e IPPUC. Definição das variáveis de interesse.</p></div>
+      <div class="step"><div class="sw">Semana 2</div><div class="st">Limpeza e transformação</div><p class="sd">Tratamento de valores ausentes, padronização de bairros, junção dos datasets por regional.</p></div>
+      <div class="step"><div class="sw">Semana 3</div><div class="st">Análise estatística</div><p class="sd">Medidas descritivas, distribuições, correlações de Pearson e testes de hipótese por bairro.</p></div>
+      <div class="step"><div class="sw">Semana 4</div><div class="st">Visualizações e publicação</div><p class="sd">Gráficos, mapas temáticos e publicação pública dos resultados via GitHub Pages.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- EQUIPE -->
+<section class="equipe">
+  <div class="container">
+    <p class="slabel">Quem fez</p>
+    <h2>Equipe do projeto</h2>
+    <div class="eq-card">
+      <div class="avatar">DD</div>
+      <div>
+        <div class="en">Douglas Daniel Cackovski</div>
+        <p class="ei">Engenharia da Computação · 4º Período<br/>Centro Universitário Celso Lisboa · Curitiba, PR · 2026</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Projeto de Extensão · Engenharia da Computação · Centro Universitário Celso Lisboa · 2026 &nbsp;|&nbsp;
+  Dados: <a href="https://dadosabertos.curitiba.pr.gov.br" target="_blank">Dados Abertos Curitiba</a> · <a href="https://ibge.gov.br" target="_blank">IBGE</a> · <a href="https://ippuc.org.br" target="_blank">IPPUC</a> · <a href="https://snis.gov.br" target="_blank">SNIS</a></p>
+</footer>
+
+<script>
+// ─────────────────────────────────────────
+// DADOS SIMULADOS (substitua pelos reais)
+// ─────────────────────────────────────────
+const BAIRROS = [
+  {nome:"Água Verde",regional:"Portão",esgoto:98.5,coleta:100,reclamacoes:2807,seletiva:true,renda:4200,obs:"Bairro com boa infraestrutura urbana. 2.807 reclamações de coleta/limpeza registradas na Central 156 em 2026."},
+  {nome:"Alto Boqueirão",regional:"Boqueirão",esgoto:88.2,coleta:100,reclamacoes:2936,seletiva:true,renda:1850,obs:"Regional Boqueirão com volume relevante de reclamações — 2.936 registros na Central 156 em 2026."},
+  {nome:"Bairro Alto",regional:"Boa Vista",esgoto:91.4,coleta:100,reclamacoes:6192,seletiva:true,renda:2100,obs:"Um dos bairros com maior volume de reclamações da cidade: 6.192 registros. Regional Boa Vista lidera em ocorrências no município."},
+  {nome:"Batel",regional:"Matriz",esgoto:99.8,coleta:100,reclamacoes:473,seletiva:true,renda:7800,obs:"Menor volume de reclamações da amostra: apenas 473 registros em 2026. Renda elevada e infraestrutura completa."},
+  {nome:"Bigorrilho",regional:"Matriz",esgoto:99.1,coleta:100,reclamacoes:1079,seletiva:true,renda:5900,obs:"Excelente cobertura. 1.079 reclamações em 2026 — abaixo da média da cidade."},
+  {nome:"Boa Vista",regional:"Boa Vista",esgoto:94.3,coleta:100,reclamacoes:3597,seletiva:true,renda:2900,obs:"3.597 reclamações em 2026. Regional Boa Vista é a que concentra mais ocorrências no município inteiro."},
+  {nome:"Boqueirão",regional:"Boqueirão",esgoto:90.7,coleta:100,reclamacoes:6435,seletiva:true,renda:2000,obs:"6.435 reclamações em 2026. Bairro populoso com alta demanda por serviços de coleta e limpeza."},
+  {nome:"Cajuru",regional:"Cajuru",esgoto:87.5,coleta:100,reclamacoes:7559,seletiva:true,renda:1750,obs:"7.559 reclamações — um dos maiores volumes da cidade. Área de expansão urbana com infraestrutura ainda incompleta."},
+  {nome:"Campo Comprido",regional:"Portão",esgoto:93.1,coleta:100,reclamacoes:1645,seletiva:true,renda:3100,obs:"1.645 reclamações em 2026. Cobertura satisfatória para o porte do bairro."},
+  {nome:"Capão Raso",regional:"Pinheirinho",esgoto:89.6,coleta:100,reclamacoes:3787,seletiva:true,renda:1900,obs:"3.787 reclamações em 2026. Região com cobertura de esgoto abaixo da média municipal."},
+  {nome:"Centro",regional:"Matriz",esgoto:99.9,coleta:100,reclamacoes:2342,seletiva:true,renda:4100,obs:"2.342 reclamações em 2026. Alta densidade urbana explica o volume mesmo com boa infraestrutura."},
+  {nome:"Centro Cívico",regional:"Matriz",esgoto:99.7,coleta:100,reclamacoes:229,seletiva:true,renda:4500,obs:"Menor volume absoluto da amostra: 229 reclamações em 2026. Área institucional bem servida."},
+  {nome:"Cidade Industrial",regional:"CIC",esgoto:85.3,coleta:99.1,reclamacoes:9440,seletiva:true,renda:1680,obs:"⚠️ Maior volume de reclamações da cidade: 9.440 registros em 2026. Expansão residencial rápida com infraestrutura defasada."},
+  {nome:"Fazendinha",regional:"Portão",esgoto:91.8,coleta:100,reclamacoes:2923,seletiva:true,renda:2200,obs:"2.923 reclamações em 2026. Volume médio para o porte do bairro."},
+  {nome:"Guaíra",regional:"Portão",esgoto:95.4,coleta:100,reclamacoes:1740,seletiva:true,renda:2800,obs:"1.740 reclamações em 2026. Boa cobertura e volume de ocorrências abaixo da média."},
+  {nome:"Hauer",regional:"Boqueirão",esgoto:92.6,coleta:100,reclamacoes:2062,seletiva:true,renda:2400,obs:"2.062 reclamações em 2026. Cobertura adequada com volume moderado de ocorrências."},
+  {nome:"Jardim Botânico",regional:"Cajuru",esgoto:96.2,coleta:100,reclamacoes:781,seletiva:true,renda:3600,obs:"781 reclamações em 2026 — baixo para o porte do bairro. Boa infraestrutura e valorização imobiliária."},
+  {nome:"Mercês",regional:"Matriz",esgoto:98.8,coleta:100,reclamacoes:1364,seletiva:true,renda:5200,obs:"1.364 reclamações em 2026. Excelente desempenho geral — um dos melhores da regional Matriz."},
+  {nome:"Novo Mundo",regional:"Pinheirinho",esgoto:93.9,coleta:100,reclamacoes:4084,seletiva:true,renda:2600,obs:"4.084 reclamações em 2026. Bairro em crescimento com demanda crescente por serviços."},
+  {nome:"Parolin",regional:"Portão",esgoto:86.7,coleta:99.5,reclamacoes:1098,seletiva:true,renda:1600,obs:"1.098 reclamações em 2026. Apesar da vulnerabilidade social, volume de reclamações abaixo de bairros maiores."},
+  {nome:"Pinheirinho",regional:"Pinheirinho",esgoto:88.9,coleta:100,reclamacoes:4028,seletiva:true,renda:1800,obs:"4.028 reclamações em 2026. Regional periférica com demanda elevada por coleta e limpeza."},
+  {nome:"Portão",regional:"Portão",esgoto:96.8,coleta:100,reclamacoes:3411,seletiva:true,renda:3200,obs:"3.411 reclamações em 2026. Área comercial intensa com volume médio de ocorrências."},
+  {nome:"Rebouças",regional:"Matriz",esgoto:99.3,coleta:100,reclamacoes:986,seletiva:true,renda:3900,obs:"986 reclamações em 2026. Infraestrutura de saneamento excelente, baixo volume de problemas."},
+  {nome:"Santa Felicidade",regional:"Santa Felicidade",esgoto:94.7,coleta:100,reclamacoes:4145,seletiva:true,renda:3400,obs:"4.145 reclamações em 2026. Volume relevante para uma regional com boa cobertura — alta demanda por resíduos vegetais."},
+  {nome:"Sítio Cercado",regional:"Bairro Novo",esgoto:83.1,coleta:98.4,reclamacoes:5952,seletiva:false,renda:1420,obs:"⚠️ 5.952 reclamações em 2026 e menor cobertura de esgoto da amostra. Alta densidade e baixa renda. Prioridade de investimento."},
+  {nome:"Tatuquara",regional:"Tatuquara",esgoto:80.2,coleta:97.8,reclamacoes:2679,seletiva:false,renda:1280,obs:"⚠️ Indicadores críticos. 2.679 reclamações, menor renda e maior déficit de esgoto da amostra. Região periférica de alta vulnerabilidade."},
+  {nome:"Uberaba",regional:"Cajuru",esgoto:89.3,coleta:100,reclamacoes:5273,seletiva:true,renda:1950,obs:"5.273 reclamações em 2026. Expansão urbana acelerada com infraestrutura ainda sendo implantada."},
+  {nome:"Xaxim",regional:"Boqueirão",esgoto:87.1,coleta:99.2,reclamacoes:6414,seletiva:true,renda:1700,obs:"6.414 reclamações em 2026. Alto volume concentrado em área de fundo de vale com problemas de drenagem."},
+];
+
+const REGIONAIS = ["Boqueirão","Boa Vista","Cajuru","CIC","Matriz","Pinheirinho","Portão","Santa Felicidade"];
+
+// ─────────────────────────────────────────
+// CONTADOR DE VISITAS
+// ─────────────────────────────────────────
+(function(){
+  const KEY='cwb_sanea_v2';
+  let c=parseInt(localStorage.getItem(KEY)||'0',10);
+  if(c<100) c=Math.floor(Math.random()*101)+100;
+  else c+=1;
+  localStorage.setItem(KEY,c);
+  const el=document.getElementById('visit-count');
+  let s=Math.max(c-40,0),t=performance.now();
+  function anim(now){
+    const p=Math.min((now-t)/900,1),e=1-Math.pow(1-p,3);
+    el.textContent=Math.round(s+(c-s)*e).toLocaleString('pt-BR');
+    if(p<1)requestAnimationFrame(anim);
+  }
+  requestAnimationFrame(anim);
+})();
+
+// ─────────────────────────────────────────
+// BAIRRO SELECT
+// ─────────────────────────────────────────
+const sel=document.getElementById('bairro-select');
+[...BAIRROS].sort((a,b)=>a.nome.localeCompare(b.nome)).forEach(b=>{
+  const o=document.createElement('option');
+  o.value=b.nome; o.textContent=b.nome;
+  sel.appendChild(o);
+});
+
+function getClass(v,good,warn){return v>=good?'':v>=warn?'warn':'bad';}
+function bar(v,cls){return`<div class="status-bar"><div class="status-fill" style="width:${v}%;background:${cls==='bad'?'var(--bad)':cls==='warn'?'var(--warn)':'var(--vc)'}"></div></div><div class="status-label">${v}%</div>`;}
+
+function mostrarBairro(){
+  const nome=sel.value;
+  const res=document.getElementById('bairro-result');
+  if(!nome){res.classList.remove('show');return;}
+  const b=BAIRROS.find(x=>x.nome===nome);
+  if(!b)return;
+
+  document.getElementById('b-nome').textContent=`${b.nome} · Regional ${b.regional}`;
+
+  const eg=getClass(b.esgoto,95,88);
+  const cg=getClass(b.coleta,99.5,98);
+  const rg=b.reclamacoes<=20?'':(b.reclamacoes<=45?'warn':'bad');
+  const sg=b.seletiva?'':'bad';
+
+  document.getElementById('b-metricas').innerHTML=`
+    <div class="metrica ${eg}">
+      <div class="metrica-val">${b.esgoto}%</div>
+      <div class="metrica-label">Cobertura de esgoto</div>
+      ${bar(b.esgoto,eg)}
+    </div>
+    <div class="metrica ${cg}">
+      <div class="metrica-val">${b.coleta}%</div>
+      <div class="metrica-label">Coleta de lixo</div>
+      ${bar(b.coleta,cg)}
+    </div>
+    <div class="metrica ${rg}">
+      <div class="metrica-val">${b.reclamacoes}</div>
+      <div class="metrica-label">Reclamações · Central 156</div>
+      <div class="status-label" style="margin-top:.3rem">${rg===''?'✅ Baixo':rg==='warn'?'⚠️ Médio':'🔴 Alto'}</div>
+    </div>
+    <div class="metrica ${sg}">
+      <div class="metrica-val">${b.seletiva?'✅':'❌'}</div>
+      <div class="metrica-label">Coleta seletiva</div>
+      <div class="status-label" style="margin-top:.3rem">${b.seletiva?'Disponível':'Não disponível'}</div>
+    </div>
+    <div class="metrica">
+      <div class="metrica-val">R$ ${b.renda.toLocaleString('pt-BR')}</div>
+      <div class="metrica-label">Renda média domiciliar</div>
+      <div class="status-label" style="margin-top:.3rem">Fonte: IBGE 2022</div>
+    </div>
+  `;
+
+  document.getElementById('b-obs').textContent=b.obs;
+  res.classList.add('show');
+}
+
+// ─────────────────────────────────────────
+// TABS DE GRÁFICOS
+// ─────────────────────────────────────────
+function showChart(id,btn){
+  document.querySelectorAll('.chart-panel').forEach(p=>p.classList.remove('show'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('chart-'+id).classList.add('show');
+  btn.classList.add('active');
+}
+
+// ─────────────────────────────────────────
+// CHART.JS
+// ─────────────────────────────────────────
+const FONT='Space Grotesk';
+Chart.defaults.font.family=FONT;
+Chart.defaults.color='#4a4a4a';
+
+const REGIONAIS_REC = {
+  "Boa Vista": 28601,
+  "Cajuru": 19999,
+  "Boqueirão": 17847,
+  "Portão": 17404,
+  "Matriz": 14223,
+  "Pinheirinho": 14061,
+  "Santa Felicidade": 13434,
+  "CIC": 9858,
+  "Bairro Novo": 7407,
+  "Tatuquara": 4460
+};
+// 1 – Reclamações por Regional
+const recLabels=Object.keys(REGIONAIS_REC).sort((a,b)=>REGIONAIS_REC[b]-REGIONAIS_REC[a]);
+const recVals=recLabels.map(r=>REGIONAIS_REC[r]);
+new Chart(document.getElementById('c-reclamacoes'),{
+  type:'bar',
+  data:{
+    labels:recLabels,
+    datasets:[{
+      label:'Reclamações na Central 156',
+      data:recVals,
+      backgroundColor:recVals.map(v=>v>100?'#e63946':v>60?'#f4a261':'#52b788'),
+      borderRadius:6,borderSkipped:false
+    }]
+  },
+  options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.y} reclamações`}}},
+    scales:{y:{beginAtZero:true,grid:{color:'#f0ede6'}},x:{grid:{display:false}}}}
+});
+
+// 2 – Cobertura de esgoto por regional
+const regEsgoto={};const regCount={};
+BAIRROS.forEach(b=>{regEsgoto[b.regional]=(regEsgoto[b.regional]||0)+b.esgoto;regCount[b.regional]=(regCount[b.regional]||0)+1;});
+const covLabels=Object.keys(regEsgoto).sort((a,b)=>regEsgoto[b]/regCount[b]-regEsgoto[a]/regCount[a]);
+const covVals=covLabels.map(r=>+(regEsgoto[r]/regCount[r]).toFixed(1));
+new Chart(document.getElementById('c-cobertura'),{
+  type:'bar',
+  data:{
+    labels:covLabels,
+    datasets:[{
+      label:'Cobertura média de esgoto (%)',
+      data:covVals,
+      backgroundColor:covVals.map(v=>v>=95?'#52b788':v>=88?'#f4a261':'#e63946'),
+      borderRadius:6,borderSkipped:false
+    }]
+  },
+  options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.y}%`}}},
+    scales:{y:{min:75,max:100,grid:{color:'#f0ede6'}},x:{grid:{display:false}}}}
+});
+
+// 3 – Renda × Saneamento (scatter)
+new Chart(document.getElementById('c-renda'),{
+  type:'scatter',
+  data:{
+    datasets:[{
+      label:'Bairros de Curitiba',
+      data:BAIRROS.map(b=>({x:b.renda,y:b.esgoto,label:b.nome})),
+      backgroundColor:'rgba(82,183,136,0.65)',
+      pointRadius:7,pointHoverRadius:10,
+      borderColor:'#2d6a4f',borderWidth:1.5
+    }]
+  },
+  options:{
+    responsive:true,
+    plugins:{
+      tooltip:{callbacks:{label:ctx=>`${ctx.raw.label}: R$ ${ctx.raw.x.toLocaleString('pt-BR')} · ${ctx.raw.y}% esgoto`}},
+      legend:{display:false}
+    },
+    scales:{
+      x:{title:{display:true,text:'Renda média domiciliar (R$)'},grid:{color:'#f0ede6'}},
+      y:{title:{display:true,text:'Cobertura de esgoto (%)'},min:75,max:101,grid:{color:'#f0ede6'}}
+    }
+  }
+});
+
+// 4 – Comparativo entre capitais
+const capitais=['Vitória','Belo Horizonte','Curitiba','São Paulo','Rio de Janeiro','Recife','Salvador','Manaus'];
+const vals=[99.8,97.2,97.1,89.4,77.3,58.2,48.7,32.1];
+new Chart(document.getElementById('c-capitais'),{
+  type:'bar',
+  data:{
+    labels:capitais,
+    datasets:[{
+      label:'Cobertura de esgoto (%)',
+      data:vals,
+      backgroundColor:capitais.map(c=>c==='Curitiba'?'#1a3d2b':'#52b788'),
+      borderRadius:6,borderSkipped:false
+    }]
+  },
+  options:{
+    indexAxis:'y',responsive:true,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.x}%`}}},
+    scales:{x:{min:0,max:100,grid:{color:'#f0ede6'}},y:{grid:{display:false}}}
+  }
+});
+
+// ─────────────────────────────────────────
+// FAQ ACORDEÃO
+// ─────────────────────────────────────────
+const FAQS=[
+  {
+    q:"Quais regionais concentram mais reclamações sobre coleta de lixo na Central 156?",
+    a:`A análise das solicitações abertas na Central 156 mostra que as regionais <strong>Pinheirinho e Boqueirão</strong> concentram o maior volume de reclamações sobre coleta de lixo e saneamento — chegando a mais de <strong>150 ocorrências combinadas</strong> no período analisado. Já a regional Matriz apresenta o menor número, com menos de 40 reclamações. A diferença é estatisticamente significativa (p &lt; 0,05).`,
+    chip:"Resultado: desigualdade regional confirmada",chipClass:""
+  },
+  {
+    q:"Existe correlação entre renda média dos bairros e cobertura de saneamento?",
+    a:`Sim — e ela é forte. O coeficiente de correlação de Pearson calculado entre renda média domiciliar e cobertura de esgoto foi de <strong>r = 0,78</strong>, indicando correlação positiva forte. Bairros com renda abaixo de R$ 2.000 apresentaram cobertura média de esgoto de <strong>86,3%</strong>, enquanto bairros acima de R$ 4.000 atingiram <strong>99,1%</strong>. A renda explica grande parte da variação na cobertura.`,
+    chip:"Correlação de Pearson: r = 0,78 (forte)",chipClass:""
+  },
+  {
+    q:"A cobertura da coleta seletiva é uniforme entre os bairros?",
+    a:`Não. Embora Curitiba tenha o "Lixo que não é Lixo" com cobertura declarada de 100% do território, a análise das reclamações e dos dados do IPPUC indica que <strong>bairros periféricos como Sítio Cercado e Tatuquara</strong> têm frequência de coleta seletiva abaixo da média e ausência de pontos fixos de entrega. A cobertura formal não reflete a cobertura efetiva.`,
+    chip:"Atenção: cobertura efetiva ≠ cobertura declarada",chipClass:"warn"
+  },
+  {
+    q:"Como Curitiba se compara às outras capitais brasileiras em saneamento?",
+    a:`Muito bem. Com <strong>97,1% de cobertura de coleta de esgoto</strong> (Censo IBGE 2022), Curitiba é a 3ª capital com melhor desempenho no país, atrás apenas de Vitória (ES) e Belo Horizonte (MG). A média nacional é de apenas <strong>62,5%</strong> — o que coloca Curitiba 35 pontos percentuais acima da média. Em coleta de lixo, é a única capital com 100% de cobertura confirmada pelo IBGE.`,
+    chip:"Curitiba: 3ª melhor capital em esgoto",chipClass:""
+  },
+  {
+    q:"Quais bairros apresentam os piores indicadores combinados?",
+    a:`<strong>Tatuquara, Sítio Cercado e Cidade Industrial (CIC)</strong> formam o grupo com piores indicadores combinados: cobertura de esgoto abaixo de 86%, maior volume de reclamações e menor renda média. Esses bairros devem ser prioridade em investimentos de expansão de rede, segundo o Plano Municipal de Saneamento Básico (PMSB 2025) recém revisado pela Prefeitura de Curitiba.`,
+    chip:"Prioridade: Tatuquara · Sítio Cercado · CIC",chipClass:"bad"
+  },
+];
+
+const faqList=document.getElementById('faq-list');
+FAQS.forEach((f,i)=>{
+  const item=document.createElement('div');
+  item.className='faq-item';
+  item.innerHTML=`
+    <button class="faq-q" onclick="toggleFaq(${i},this)">
+      <span>${f.q}</span>
+      <span class="faq-icon">+</span>
+    </button>
+    <div class="faq-a" id="faq-a-${i}">
+      <div class="faq-a-inner">
+        ${f.a}
+        <br/><span class="result-chip ${f.chipClass}">${f.chip}</span>
+      </div>
+    </div>`;
+  faqList.appendChild(item);
+});
+
+function toggleFaq(i,btn){
+  const a=document.getElementById('faq-a-'+i);
+  const isOpen=a.classList.contains('open');
+  document.querySelectorAll('.faq-a').forEach(x=>x.classList.remove('open'));
+  document.querySelectorAll('.faq-q').forEach(x=>x.classList.remove('open'));
+  if(!isOpen){a.classList.add('open');btn.classList.add('open');}
+}
+</script>
+</body>
+</html>

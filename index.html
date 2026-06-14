@@ -335,22 +335,40 @@ const BAIRROS = [
 const REGIONAIS = ["Boqueirão","Boa Vista","Cajuru","CIC","Matriz","Pinheirinho","Portão","Santa Felicidade"];
 
 // ─────────────────────────────────────────
-// CONTADOR DE VISITAS
+// CONTADOR DE VISITAS — hitscounter.dev
+// Lê o SVG retornado, extrai o número e exibe com animação
+// Funciona em localhost e no GitHub Pages
 // ─────────────────────────────────────────
 (function(){
-  const KEY='cwb_sanea_v2';
-  let c=parseInt(localStorage.getItem(KEY)||'0',10);
-  if(c<100) c=Math.floor(Math.random()*101)+100;
-  else c+=1;
-  localStorage.setItem(KEY,c);
-  const el=document.getElementById('visit-count');
-  let s=Math.max(c-40,0),t=performance.now();
-  function anim(now){
-    const p=Math.min((now-t)/900,1),e=1-Math.pow(1-p,3);
-    el.textContent=Math.round(s+(c-s)*e).toLocaleString('pt-BR');
-    if(p<1)requestAnimationFrame(anim);
-  }
-  requestAnimationFrame(anim);
+  const el = document.getElementById('visit-count');
+  el.textContent = '...';
+
+  const URL = 'https://hitscounter.dev/api/hit?url=https%3A%2F%2Fdc-555.github.io%2Fsaneamento-curitiba%2F&count_bg=%2352b788&title_bg=%231a3d2b&title=visitas&edge_flat=true';
+
+  fetch(URL)
+    .then(r => r.text())
+    .then(svg => {
+      // O SVG contém o total no último <text> com fill="#fff"
+      const matches = svg.match(/<text[^>]*fill="#fff"[^>]*>([\d\s\/]+)<\/text>/g);
+      if (!matches) { el.textContent = '—'; return; }
+      // O último match é o total (formato "hoje / total")
+      const last = matches[matches.length - 1].replace(/<[^>]+>/g, '').trim();
+      // Pode vir como "3 / 127" — pega só o total (após /)
+      const parts = last.split('/');
+      const c = parseInt(parts[parts.length - 1].trim(), 10);
+      if (isNaN(c)) { el.textContent = last; return; }
+      // Anima
+      const start = Math.max(c - 40, 0);
+      const t = performance.now();
+      function anim(now) {
+        const prog = Math.min((now - t) / 900, 1);
+        const ease = 1 - Math.pow(1 - prog, 3);
+        el.textContent = Math.round(start + (c - start) * ease).toLocaleString('pt-BR');
+        if (prog < 1) requestAnimationFrame(anim);
+      }
+      requestAnimationFrame(anim);
+    })
+    .catch(() => { el.textContent = '—'; });
 })();
 
 // ─────────────────────────────────────────
